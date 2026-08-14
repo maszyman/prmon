@@ -29,6 +29,8 @@ const size_t stat_cpu_read_limit = 16;
 const size_t num_threads = 19;
 const size_t stat_count_read_limit = 19;
 const size_t uptime_pos = 21;
+const size_t processor_pos = 38;
+const size_t stat_task_read_limit = 38;
 
 // This is a utility function that executes a command and
 // pipes the output back, returning a vector of strings
