@@ -45,6 +45,8 @@ ALLOWEDUNITS = {
     "gpumempct": ["%"],
     "gpusmpct": ["%"],
     "ngpus": ["1"],
+    "numa_cpu_spread": ["1"],
+    "numa_mem_local_pct": ["%"],
 }
 
 AXISNAME = {
@@ -69,6 +71,8 @@ AXISNAME = {
     "gpumempct": "Memory",
     "gpusmpct": "Streaming Multiprocessors",
     "ngpus": "Count",
+    "numa_cpu_spread": "Count",
+    "numa_mem_local_pct": "Memory",
 }
 
 LEGENDNAMES = {
@@ -93,6 +97,8 @@ LEGENDNAMES = {
     "gpumempct": "GPU Memory",
     "gpusmpct": "GPU Streaming Multiprocessors",
     "ngpus": "Number of GPUs",
+    "numa_cpu_spread": "NUMA Nodes Running Threads",
+    "numa_mem_local_pct": "Memory Local to Running Threads",
 }
 
 MULTIPLIERS = {

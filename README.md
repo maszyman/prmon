@@ -174,6 +174,26 @@ at runtime via `dlopen`, so `prmon` can be compiled on machines without
 NVIDIA drivers and will detect GPU support when run on a machine that
 has them.
 
+### NUMA Locality Monitoring
+
+On multi-socket machines the `numamon` monitor reports `numa_cpu_spread`, the
+number of NUMA nodes the job's threads were running on, and
+`numa_mem_local_pct`, the share of the job's memory that was local to the
+average thread. The second is the expected fraction of memory accesses that do
+not cross the interconnect: threads and memory each spread evenly over two
+nodes gives 50%, everything on one node gives 100%. Both are snapshots, so
+`Max` and `Avg` are both meaningful, and the node count needed to read the
+spread is reported under `HW.numa`.
+
+`numa_mem_local_pct` is sampled every 30 seconds, as reading the per-node
+memory of a process makes the kernel walk the page tables of every one of its
+mappings. The cycles in between report the last measured value again, and its
+`Avg` is taken over the cycles that measured it rather than over every cycle.
+
+The CPU to node map is read from `/sys/devices/system/node`, so it does not
+depend on `--suppress-hw-info`. With fewer than two nodes there is nothing to
+measure and `numamon` disables itself, omitting both parameters.
+
 ### Environment Variables
 
 The `PRMON_DISABLE_MONITOR` environment variable can be used to specify a comma
@@ -248,7 +268,7 @@ The `prmon_compress_output.py` script (Python3) can be used to compress the outp
 while keeping the most relevant information.
 
 The compression algorithm works as follows:
-* For the number of processes, threads, and GPUs, only the measurements that are different with respect to the previous ones are kept.
+* For the number of processes, threads, and GPUs, and for the NUMA node spread, only the measurements that are different with respect to the previous ones are kept.
 * For all other metrics, only the measurements that satisfy an interpolation condition are kept.
 
 This latter condition can be summarized as:

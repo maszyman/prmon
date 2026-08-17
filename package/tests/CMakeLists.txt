@@ -43,9 +43,10 @@ if (BUILD_GTESTS)
 
     gtest_discover_tests(test_parameter_classes)
 
-    add_executable(test_values test_values.cpp 
+    add_executable(test_values test_values.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/../src/countmon.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/../src/cpumon.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/../src/numamon.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/../src/memmon.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/../src/netmon.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/../src/nvidiamon.cpp
@@ -79,6 +80,7 @@ if (BUILD_GTESTS)
     add_executable(test_fields test_fields.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/../src/countmon.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/../src/cpumon.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/../src/numamon.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/../src/memmon.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/../src/netmon.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/../src/nvidiamon.cpp

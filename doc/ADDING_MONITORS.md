@@ -63,11 +63,20 @@ construct and return the appropriate data structure to the main `prmon` loop.
 
 ## Initialisation
 
-Use an RAII pattern, so that on initialisation the monitor is valid and ready
-to be used.
+Use an RAII pattern, so that on initialisation the monitor is ready to be
+used.
 
 For most monitors the `monitored_list` is initalised from the corresponding
 `const parameter_list`.
+
+## Validity
+
+A monitor that finds nothing to measure on the machine it is running on should
+report `false` from `is_valid()`. Invalid monitors are dropped at startup, so
+they are never polled and none of their parameters appear in the output at all.
+That tells a consumer the quantity was not measured, rather than that it was
+measured as zero. `numamon` does this when there are fewer than two NUMA nodes,
+and `nvidiamon` when no GPUs are present.
 
 ## Registry
 

@@ -1,0 +1,2 @@
+7f0000000000 default anon=512 N0=256 N2=256 kernelpagesize_kB=4
+7f0000001000 default anon=1 N2=1 kernelpagesize_kB=2048

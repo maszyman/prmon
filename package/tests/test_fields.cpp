@@ -18,6 +18,7 @@
 #include "../src/iomon.h"
 #include "../src/memmon.h"
 #include "../src/netmon.h"
+#include "../src/numamon.h"
 #include "../src/nvidiamon.h"
 #include "../src/prmonutils.h"
 #include "../src/registry.h"

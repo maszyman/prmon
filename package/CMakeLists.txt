@@ -8,6 +8,7 @@ add_executable(prmon src/prmon.cpp
            src/iomon.cpp
            src/cpumon.cpp
            src/countmon.cpp
+           src/numamon.cpp
            src/wallmon.cpp
            src/memmon.cpp
            )

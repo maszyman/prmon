@@ -121,6 +121,62 @@ def make_nvidia(proc_nvidia, fixed_value_sm_mem, fixed_value_fb,
         print("", file=f)
 
 
+def make_task_stat(proc_pid, tid, processor):
+    """Write a thread stat file placing the thread on a given CPU
+
+    The thread name deliberately contains a space, as real ones often do, so
+    that fields cannot be counted from the start of the line.
+    """
+    task_dir = os.path.join(proc_pid, "task", str(tid))
+    os.makedirs(task_dir)
+    with open(os.path.join(task_dir, "stat"), "w") as f:
+        print(tid, file=f, end=" ")  # 1 pid
+        print("(python3 worker)", file=f, end=" ")  # 2 Executable filename
+        # 3 to 38 are not read by any monitor -> set to 0
+        print(" ".join(["0"] * 36), file=f, end=" ")
+        # 39 processor - the CPU the thread last ran on
+        print(processor, file=f)
+
+
+def make_numa_maps(proc_pid, mappings):
+    """Write a numa_maps file from a list of (page size in kB, {node: pages})"""
+    numa_maps_fname = os.path.join(proc_pid, "numa_maps")
+    with open(numa_maps_fname, "w") as f:
+        for i, (page_size_kb, node_pages) in enumerate(mappings):
+            total = sum(node_pages.values())
+            fields = [f"7f0000{i:03d}000", "default", f"anon={total}"]
+            fields += [f"N{node}={pages}" for node, pages in node_pages.items()]
+            fields.append(f"kernelpagesize_kB={page_size_kb}")
+            print(" ".join(fields), file=f)
+
+
+def format_range_list(values):
+    """Format ids as the kernel does, e.g. {0, 1, 3, 4} becomes 0-1,3-4"""
+    runs = []
+    for value in sorted(values):
+        if runs and value == runs[-1][1] + 1:
+            runs[-1][1] = value
+        else:
+            runs.append([value, value])
+    return ",".join(str(lo) if lo == hi else f"{lo}-{hi}" for lo, hi in runs)
+
+
+def make_numa_topology(new_dir, node_cpulists):
+    """Write the sysfs CPU list of each NUMA node, plus some of its company"""
+    node_dir = os.path.join(new_dir, "sys", "devices", "system", "node")
+    os.makedirs(node_dir)
+    for node, cpulist in node_cpulists.items():
+        os.mkdir(os.path.join(node_dir, f"node{node}"))
+        with open(os.path.join(node_dir, f"node{node}", "cpulist"), "w") as f:
+            print(cpulist, file=f)
+    # These sit alongside the node directories and must not be taken for nodes.
+    # They hold node ids, not CPUs.
+    node_list = format_range_list(node_cpulists)
+    for entry in ["online", "possible", "has_cpu"]:
+        with open(os.path.join(node_dir, entry), "w") as f:
+            print(node_list, file=f)
+
+
 def createPath(new_dir):
     dir_name = os.path.join(os.getcwd(), "precooked_tests")
     if not os.path.isdir(dir_name):
@@ -177,6 +233,42 @@ def createTestMonotonic():
         i += 1
 
 
+def createTestNuma():
+    # 3 iterations covering the cases the locality metrics separate: a job
+    # packed on one node with its memory there, a job spread over both nodes,
+    # and a job packed on one node with its memory on the other
+    dir_name = createPath("numa")
+
+    # A two node machine with non-contiguous node numbering, as some have
+    node_cpulists = {0: "0-3", 2: "4-7"}
+
+    # (CPU of thread 1729, CPU of thread 1730), numa_maps mappings
+    iterations = [
+        # Both threads on node0 with all the memory there: spread 1, 100%
+        ((0, 1), [(4, {0: 256})]),
+        # One thread on each node and the memory split evenly, so half of
+        # every thread's accesses are local: spread 2, 50%
+        ((0, 4), [(4, {0: 256, 2: 256})]),
+        # Both back on node0, but weighting the huge page mapping by its page
+        # size leaves only 1024 of 4096 kB on node0: spread 1, 25%
+        ((1, 2), [(4, {0: 256, 2: 256}), (2048, {2: 1})]),
+    ]
+
+    for i, (processors, mappings) in enumerate(iterations, start=1):
+        # New directory for each iteration
+        new_dir = os.path.join(dir_name, str(i))
+        os.mkdir(new_dir)
+        make_numa_topology(new_dir, node_cpulists)
+
+        # Create /proc/pid equivalent directory
+        proc_pid = os.path.join(new_dir, "proc", str(pid))
+        os.makedirs(proc_pid)
+        for tid, processor in zip([pid, pid + 1], processors):
+            make_task_stat(proc_pid, tid, processor)
+        make_numa_maps(proc_pid, mappings)
+        gc.collect()
+
+
 def createTestRand(dir_name, iter):
     # 3 iterations having first increasing and then decreasing stats
     dir_name = createPath(dir_name)
@@ -222,6 +314,7 @@ def main():
         parser.error("The name of the directory has to be specified")
     if args.dir is None:
         createTestMonotonic()
+        createTestNuma()
     else:
         createTestRand(args.dir, args.iter)
 

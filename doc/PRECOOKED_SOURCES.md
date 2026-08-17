@@ -16,12 +16,15 @@ The precooked sources are located at [precooked_tests](../package/scripts/precoo
 It contains a directory for
 each class of tests. For example, `drop` contains tests where the values of 
 some metrics decrease after some iteration. These tests are mainly to test 
-the protection of monotonic metrics against drop in values.
+the protection of monotonic metrics against drop in values. `numa` contains
+a job whose threads and memory move between the nodes of a two node machine.
 
 Each test directory consists of a directory for each iteration.
 
 Inside each iteration, we have a `proc`, `net`, `nvidia`. These are 
 directories emulating the actual directories that the monitors read from.
+The `numa` test also has a `sys`, as `numamon` reads the NUMA topology from
+`sys/devices/system/node`.
 Some directories can be omitted or others can be added depending on the
 nature and requirements of the test.
 The structure of these directories should be as close to the actual 
